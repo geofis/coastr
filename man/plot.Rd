@@ -24,7 +24,8 @@ plot.transect plots the transect using a minimal theme,
 }
 \examples{
 
-transect <- read_transect('profiles.geojson')
+(file_path <- system.file('extdata', 'transects-long.geojson', package = 'coastr'))
+(transect <- read_transect(file_path, profile = T, start_from = 'N'))
 plot(transect)
 
 }

@@ -31,7 +31,8 @@
 #'   returned. In any case, the return inherits the \code{sf} class.
 #'
 #' @examples
-#' (transect <- read_transect('profiles.geojson'))
+#' (file_path <- system.file('extdata', 'transects-long.geojson', package = 'coastr'))
+#' (transect <- read_transect(file_path, profile = T, start_from = 'N'))
 #'
 #' @importFrom magrittr "%>%"
 #' @importFrom assertthat assert_that

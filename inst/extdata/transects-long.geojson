@@ -1,0 +1,14 @@
+{
+"type": "FeatureCollection",
+"name": "transect-profiles",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::32619" } },
+"features": [
+{ "type": "Feature", "properties": { "fid": 2 }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 382615.832989230693784, 2023353.304345104377717 ], [ 382625.20971871749498, 2023348.027208974584937 ] ] ] } },
+{ "type": "Feature", "properties": { "fid": 3 }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 382615.226726815395523, 2023348.426528650568798 ], [ 382624.182896693295334, 2023344.832651565782726 ] ] ] } },
+{ "type": "Feature", "properties": { "fid": 1 }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 382613.471706680371426, 2023343.091088060988113 ], [ 382622.129252644837834, 2023340.782409137114882 ] ] ] } },
+{ "type": "Feature", "properties": { "fid": 5 }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 382553.035609572485555, 2023252.267506416421384 ], [ 382571.715143539244309, 2023244.075740439817309 ] ] ] } },
+{ "type": "Feature", "properties": { "fid": 7 }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 382546.179337867826689, 2023247.237708854256198 ], [ 382568.031686340051237, 2023238.641107464209199 ] ] ] } },
+{ "type": "Feature", "properties": { "fid": 6 }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 382537.603719203907531, 2023238.997487890068442 ], [ 382565.868448639754206, 2023233.698658869601786 ] ] ] } },
+{ "type": "Feature", "properties": { "fid": null }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 382549.695515686704312, 2023227.133177040377632 ], [ 382564.211916447035037, 2023227.773606485687196 ] ] ] } }
+]
+}

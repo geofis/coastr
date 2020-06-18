@@ -41,6 +41,7 @@ A transect consists of one line comprised by two
   convention) or using semi-automatic tools (e.g. CoastSat toolchain)
 }
 \examples{
-(transect <- read_transect('profiles.geojson'))
+(file_path <- system.file('extdata', 'transects-long.geojson', package = 'coastr'))
+(transect <- read_transect(file_path, profile = T, start_from = 'N'))
 
 }
