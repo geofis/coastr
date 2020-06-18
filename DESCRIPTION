@@ -3,15 +3,18 @@ Type: Package
 Title: Tools for coastal analysis using R
 Version: 0.0.0.9000
 Authors@R: 
-    c(person(given = "Jose Ramon",
+        person(given = "Jose Ramon",
              family = "Martinez Batlle",
              role = c("aut", "cre"),
              email = "joseramon@geografiafisica.org",
              comment = c("ORCID" = "0000-0001-9924-0327"))
 Imports:
-    raster
-Maintainer:
-    Jose Martinez <joseramon@geografiafisica.org>
+    raster,
+    dplyr,
+    assertthat,
+    sf,
+    RColorBrewer
+Maintainer: Jose Martinez <joseramon@geografiafisica.org>
 Description:
     A set of tools for coastal analysis, including beach profile
     analysis generated from high resolution digital surface model,
@@ -19,3 +22,4 @@ Description:
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 7.1.0
