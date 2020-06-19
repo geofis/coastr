@@ -27,12 +27,12 @@ plot.transect <- function(x, ...) {
   n <- nrow(x)
   q <- brewer.pal.info[brewer.pal.info$category == 'qual',]
   v <- unlist(mapply(brewer.pal, q$maxcolors, rownames(q)))
-  ggplot(x) + aes(color = id) +
+  ggplot(x) + aes(color = coastr_id) +
     geom_sf(lwd = 1) +
     scale_color_manual(values = sample(v, n)) +
     geom_sf_text(
       data = suppressWarnings(x %>% st_centroid),
-      aes(label = id), color = 'black', size = 4) +
+      aes(label = coastr_id), color = 'black', size = 4) +
     theme_minimal() +
     theme(legend.position = 'none')
 }

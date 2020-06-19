@@ -2,46 +2,45 @@
 % Please edit documentation in R/read-transects.R
 \name{read_transect}
 \alias{read_transect}
+\alias{read_transect.character}
+\alias{read_transect.sf}
 \title{Read and prepare transects}
 \usage{
-read_transect(dsn, profile = T, start_from = NULL, ...)
+read_transect(x, ...)
+
+\method{read_transect}{character}(x, start_from = NULL, ...)
+
+\method{read_transect}{sf}(x, start_from = NULL, ...)
 }
 \arguments{
-\item{dsn}{character; the data source name containing line
-geometries. See details.}
+\item{x}{object of class \code{sf} or path to geometries file. See details.}
 
-\item{profile}{logical; if TRUE (default), lines are prepared for generating
-topographic profiles; if FALSE, time-series transects are generated.}
+\item{...}{other arguments passed to sf::st_read.}
 
 \item{start_from}{character; \code{'E'} assigns sequential id's to
 transects starting from East, \code{'N'} from North, and so on.}
-
-\item{...}{other arguments passed to sf::st_read.}
 }
 \value{
 An object of class transect, which inherits both 'sf' and 'data.frame'
-  classes. If \code{profile=TRUE} an object of class \code{profile} is returned.
-  If \code{profile=FALSE}, an objetct of class \code{time_series} (time-series) is
-  returned. In any case, the return inherits the \code{sf} class.
+  classes, containing a \code{coastr_id}.
 }
 \description{
 Read transects from admitted file formats by sf::st_read function, and
   prepare the data for analysis workflows.
 }
 \details{
-A transect consists of one line comprised by two
-  vertices, the first of which must be digitized landward.
-  Currently, the function only accepts line geometries (no multiline)
-  in projected coordinate systems (e.g. EPSG:32619). A profile transect
-  must match at least two pixels of the reference DSM (see
-  \code{read_dsm}).
+If \code{x} is a character string, it must be the path to
+  an external data source (e.g. a file of line geometries). If \code{x} is
+  an object of class \code{sf}, it must be of geometry type \code{LINESTRING}
+  or \code{MULTILINESTRING}.
 
-  A time-series transect must cut across a set of shorelines;
-  the latter may be digitized by hand (following the landward-seaward
-  convention) or using semi-automatic tools (e.g. CoastSat toolchain)
+  A transect consists of one line comprised by two
+  vertices, the first of which must be digitized landward.
+  Currently, the function only accepts LINESTRING or MULTILINESTRING
+  in projected coordinate systems (e.g. EPSG:32619).
 }
 \examples{
 (file_path <- system.file('extdata', 'transects-long.geojson', package = 'coastr'))
-(transect <- read_transect(file_path, profile = T, start_from = 'N'))
+(transect <- read_transect(file_path, start_from = 'N'))
 
 }
