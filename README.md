@@ -1,2 +1,2 @@
-# coastr
-Tools for coastal analysis using R
+# coastr. An R package for coastal analysis
+
