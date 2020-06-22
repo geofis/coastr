@@ -33,26 +33,21 @@
 #' @importFrom dplyr arrange
 #'
 #' @export
-
 read_transect <- function(x, ...) UseMethod('read_transect')
 
 #' @name read_transect
 #' @export
-
 read_transect.character <- function(x, start_from = NULL, ...) {
   obj <- invisible(st_read(x, quiet = T, ...))
-  check_geometry_type(obj)
-  check_class_transect(x)
+  check_object(obj)
   transect <- add_id_col_arrange_class(obj, start_from  = start_from)
   return(transect)
 }
 
 #' @name read_transect
 #' @export
-
 read_transect.sf <- function(x, start_from = NULL, ...) {
-  check_geometry_type(x)
-  check_class_transect(x)
+  check_object(x)
   obj <- x
   transect <- add_id_col_arrange_class(obj, start_from  = start_from)
   return(transect)
@@ -69,6 +64,11 @@ check_class_transect <- function(obj) {
     stop('The source is already an object of class transect')
 }
 
+check_object <- function(obj) {
+  check_geometry_type(obj)
+  check_class_transect(obj)
+}
+
 add_id_col_arrange_class <- function(obj, ...) {
   obj$coastr_id <- increment_from_id(obj = obj, ...)
   transect <- obj %>% arrange(coastr_id)
@@ -82,11 +82,12 @@ increment_from_id <- function(obj, start_from = 'N') {
   assert_that(nchar(start_from) == 1)
   we <- factor(order(st_coordinates(st_centroid(obj$geometry))[,1]))
   sn <- factor(order(st_coordinates(st_centroid(obj$geometry))[,2]))
-  switch(start_from,
+  ordered <- switch(start_from,
     'E' = rev(we),
     'N' = rev(sn),
     'S' = sn,
     'W' = we,
     stop('Invalid start_from value. Select one of E, N, S, W')
   )
+  return(ordered)
 }

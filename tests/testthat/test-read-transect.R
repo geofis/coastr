@@ -17,12 +17,20 @@ test_that("coastr_id field exists and is factor in transect object", {
   expect_true(is.factor(transect$coastr_id))
 })
 
-test_that("check geometry actually checks geometries in input object", {
+test_that("check geometry type of the input object is LINESTRING OR MULTILINESTRING", {
   expect_error(check_geometry_type(test_input_pol))
+  expect_null(check_geometry_type(test_input_line))
 })
 
-test_that("check geometry actually checks geometries in input object", {
-  expect_null(check_geometry_type(test_input_line))
+test_that("check object is not an object of class transect", {
+  expect_error(check_class_transect(transect))
+  expect_null(check_class_transect(test_input_line))
+})
+
+test_that("check object geometry type and class", {
+  expect_error(check_object(transect))
+  expect_error(check_object(test_input_pol))
+  expect_null(check_object(test_input_line))
 })
 
 test_that("geometry length is equal to vector length of increments_from_id", {

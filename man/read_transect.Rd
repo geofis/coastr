@@ -31,7 +31,7 @@ Read transects from admitted file formats by sf::st_read function, and
 \details{
 If \code{x} is a character string, it must be the path to
   an external data source (e.g. a file of line geometries). If \code{x} is
-  an object of class \code{sf}, it must be of geometry type \code{LINESTRING}
+  an object of class \code{sf}, it must be one with geometry types \code{LINESTRING}
   or \code{MULTILINESTRING}.
 
   A transect consists of one line comprised by two
