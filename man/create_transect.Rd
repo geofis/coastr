@@ -9,11 +9,12 @@ create_transect(obj, distance = NULL, transect_length = 1, sides)
 \arguments{
 \item{distance}{numeric; separation distance between transects}
 
+\item{transect_length}{numeric; Euclidean distance of transects}
+
 \item{sides}{character; takes 'left', 'right' and 'both'}
 
-\item{x}{name of an object of class shoreline}
-
-\item{length}{numeric; Euclidean distance of transects}
+\item{x}{name of an object of class sf which must contain
+geometries of type \code{LINESTRING} or \code{MULTILINESTRING}.}
 }
 \description{
 Create transects of user-defined length and at regular distance

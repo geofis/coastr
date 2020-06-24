@@ -3,30 +3,35 @@
 #' Create transects of user-defined length and at regular distance
 #' along an input shoreline
 #'
-#' @param x name of an object of class shoreline
+#' @param x name of an object of class sf which must contain
+#'   geometries of type \code{LINESTRING} or \code{MULTILINESTRING}.
 #' @param distance numeric; separation distance between transects
-#' @param length numeric; Euclidean distance of transects
+#' @param transect_length numeric; Euclidean distance of transects
 #' @param sides character; takes 'left', 'right' and 'both'
 #'
 #' @importFrom sf st_coordinates st_line_sample st_cast st_crs
-#' @importFrom sf st_geometry st_sf st_sfc st_multilinestring
+#' @importFrom sf st_read st_geometry st_sf st_sfc st_multilinestring
 #' @importFrom zoo zoo
 #' @export
 create_transect <- function(obj, distance = NULL, transect_length = 1, sides) {
   point <- create_point(obj, distance)
   coords <- calculate_xy_coords(point)
   lag <- calculate_lag(coords)
-  angle <- calculate_angle(lag)
+  angle <- calculate_mean_angle(lag)
+  point_coordinates <- create_point_coordinates(angle, transect_length)
+  point_sides <- find_side_of_points(point_coordinates)
+  return(point_sides)
   multilinestring <- create_multilinestring(angle, transect_length)
+  return(multilinestring)
 }
 
-create_point <- function(obj, distance) {
+create_point <- function(obj, distance = distance) {
   if(is.null(distance)) {
-    point_vertex <- st_cast(obj, 'POINT')
+    point_vertex <- suppressWarnings(st_cast(obj, 'POINT'))
     point <- st_geometry(point_vertex)
   } else {
     multipoint_distance <- st_line_sample(obj, density = 1/distance)
-    point <- st_cast(multipoint_distance, 'POINT')
+    point <- suppressWarnings(st_cast(multipoint_distance, 'POINT'))
   }
   df_point <- data.frame(coastr_id = 1:length(point))
   point_sf <- st_sf(df_point, geometry = point)
@@ -56,7 +61,7 @@ calculate_lag <- function(coords) {
   return(lag_both)
 }
 
-calculate_angle <- function(lag) {
+calculate_mean_angle <- function(lag) {
   angle_forward <- atan2(lag[,'y_lag_forward'], lag[, 'x_lag_forward'])
   angle_backward <- atan2(lag[,'y_lag_backward'], lag[, 'x_lag_backward'])
   angles_both <- cbind(lag, angle_forward, angle_backward)
@@ -68,6 +73,60 @@ calculate_angle <- function(lag) {
   class(df_angle) <- c('angle', class(df_angle))
   return(df_angle)
 }
+
+create_point_coordinates <- function(angle, transect_length) {
+  point_coordinates_list <- lapply(angle$coastr_id, function(z) {
+    x0 <- with(angle, x[coastr_id == z])
+    y0 <- with(angle, y[coastr_id == z])
+    x1 <- with(angle, x[coastr_id == z] + transect_length * cos(mean_angle[coastr_id == z]))
+    y1 <- with(angle, y[coastr_id == z] + transect_length * sin(mean_angle[coastr_id == z]))
+    x2 <- with(angle, x[coastr_id == z] - transect_length * cos(mean_angle[coastr_id == z]))
+    y2 <- with(angle, y[coastr_id == z] - transect_length * sin(mean_angle[coastr_id == z]))
+    df <- data.frame(coastr_id = rep(z, 3), index = c(0, 1, 2),
+                     x = c(x0, x1, x2), y = c(y0, y1, y2))
+    return(df)
+  })
+  point_coordinates <- do.call(rbind, point_coordinates_list)
+  attr(point_coordinates, 'epsg') <- attributes(angle)$epsg
+  class(point_coordinates) <- c('point_coordinates', class(angle))
+  return(point_coordinates)
+}
+
+find_side_of_points <- function(point_coordinates) {
+  coastr_id_index <- unique(point_coordinates$coastr_id)
+  sides_list <- lapply(coastr_id_index, function(z) {
+    sign1 <- with(point_coordinates,
+                  ( (x[coastr_id == ifelse(z==length(coastr_id_index), z, z + 1) & index == 0] - x[coastr_id == ifelse(z==length(coastr_id_index), z-1, z) & index == 0 ]) *
+                      (y[coastr_id == z & index == 1] - y[coastr_id == ifelse(z==length(coastr_id_index), z-1, z) & index == 0 ]) -
+                      (y[coastr_id == ifelse(z==length(coastr_id_index), z, z + 1) & index == 0 ] - y[coastr_id == ifelse(z==length(coastr_id_index), z-1, z) & index == 0 ]) *
+                      (x[coastr_id == z & index == 1] - x[coastr_id == ifelse(z==length(coastr_id_index), z-1, z) & index == 0 ]) )
+    )
+    side1 <- ifelse(sign1 < 0, 'right', ifelse(sign1 > 0, 'left', 'on the line'))
+    sign2 <- with(point_coordinates,
+                  ( (x[coastr_id == ifelse(z==length(coastr_id_index), z, z + 1) & index == 0] - x[coastr_id == ifelse(z==length(coastr_id_index), z-1, z) & index == 0 ]) *
+                      (y[coastr_id == z & index == 2] - y[coastr_id == ifelse(z==length(coastr_id_index), z-1, z) & index == 0 ]) -
+                      (y[coastr_id == ifelse(z==length(coastr_id_index), z, z + 1) & index == 0 ] - y[coastr_id == ifelse(z==length(coastr_id_index), z-1, z) & index == 0 ]) *
+                      (x[coastr_id == z & index == 2] - x[coastr_id == ifelse(z==length(coastr_id_index), z-1, z) & index == 0 ]) )
+    )
+    side2 <- ifelse(sign2 < 0, 'right', ifelse(sign2 > 0, 'left', 'on the line'))
+    sides_df <- data.frame(coastr_id = rep(z, 3), index = c(0, 1, 2),
+                        side = c('on the line', side1, side2))
+    return(sides_df)
+  })
+  sides_rbind <- do.call(rbind, sides_list)
+  sides <- base::merge(point_coordinates, sides_rbind)
+  attr(sides, 'epsg') <- attributes(point_coordinates)$epsg
+  class(sides) <- c('sides', class(point_coordinates))
+  return(sides)
+}
+
+
+
+
+
+
+
+
 
 create_multilinestring <- function(angle, transect_length) {
   multilinestring <- lapply(angle$coastr_id, function(z) {
@@ -83,10 +142,10 @@ create_multilinestring <- function(angle, transect_length) {
         rbind(c(x0, y0), c(x2, y2))))
     )
     multilinestring_sf <- st_sf(data.frame(coastr_id = z), geometry = multilinestring_sfc)
-    class(multilinestring_sf) <- c('transect', class(multilinestring_sf))
     return(multilinestring_sf)
   })
   multilinestring <- do.call(rbind, multilinestring)
   st_crs(multilinestring) <- attributes(angle)$epsg
+  class(multilinestring) <- c('transect', class(multilinestring))
   return(multilinestring)
 }
