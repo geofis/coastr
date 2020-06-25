@@ -3,26 +3,44 @@
 #' Create transects of user-defined length and at regular distance
 #' along an input shoreline
 #'
-#' @param x name of an object of class sf which must contain
+#' @param x name of an object of class \code{sf}, or a path to a file
+#'   readable by the \code{sf::st_read} function, which must contain
 #'   geometries of type \code{LINESTRING} or \code{MULTILINESTRING}.
 #' @param distance numeric; separation distance between transects
 #' @param transect_length numeric; Euclidean distance of transects
-#' @param sides character; takes 'left', 'right' and 'both'
+#' @param sides character; takes 'left', 'right' and 'across'
+#' @param ... other arguments passed to sf::st_read.
+#' @details
 #'
-#' @importFrom sf st_coordinates st_line_sample st_cast st_crs
-#' @importFrom sf st_read st_geometry st_sf st_sfc st_multilinestring
+#' @return
+#'
+#' @examples
+#'
+#' @importFrom magrittr `%>%`
+#' @importFrom sf st_read st_coordinates st_geometry st_geometry_type st_line_sample st_cast st_crs `st_crs<-` st_sf st_sfc st_linestring st_multilinestring
 #' @importFrom zoo zoo
 #' @export
-create_transect <- function(obj, distance = NULL, transect_length = 1, sides) {
+create_transect <- function(x, distance = NULL,
+                            transect_length = 1, sides = NULL, ...) {
+  if(is.character(x)) {
+    obj <- invisible(st_read(dsn = x, quiet = T, ...))
+  } else {
+    if(any(class(x) %in% 'sf')) {
+      obj <- x
+      } else {
+        stop('x must be a character string containing a path to a source
+         or the name of an object of class sf')
+      }
+  }
+  check_object(obj)
   point <- create_point(obj, distance)
   coords <- calculate_xy_coords(point)
   lag <- calculate_lag(coords)
   angle <- calculate_mean_angle(lag)
   point_coordinates <- create_point_coordinates(angle, transect_length)
   point_sides <- find_side_of_points(point_coordinates)
-  return(point_sides)
-  multilinestring <- create_multilinestring(angle, transect_length)
-  return(multilinestring)
+  transects_sides <- create_transect_sides(point_sides, sides)
+  return(transects_sides)
 }
 
 create_point <- function(obj, distance = distance) {
@@ -36,7 +54,7 @@ create_point <- function(obj, distance = distance) {
   df_point <- data.frame(coastr_id = 1:length(point))
   point_sf <- st_sf(df_point, geometry = point)
   attr(point_sf, 'epsg') <- st_crs(obj)$epsg
-  class(point_sf) <- c('point', class(point_sf))
+  # class(point_sf) <- c('point', class(point_sf))
   return(point_sf)
 }
 
@@ -45,7 +63,7 @@ calculate_xy_coords <- function(point) {
   y_coord <- st_coordinates(point)[, 2]
   coords <- data.frame(coastr_id = point$coastr_id, x = x_coord, y = y_coord)
   attr(coords, 'epsg') <- attributes(point)$epsg
-  class(coords) <- c('coords', class(coords))
+  # class(coords) <- c('coords', class(coords))
   return(coords)
 }
 
@@ -57,7 +75,7 @@ calculate_lag <- function(coords) {
                           'x_lag_forward', 'y_lag_forward',
                           'x_lag_backward', 'y_lag_backward')
   attr(lag_both, 'epsg') <- attributes(coords)$epsg
-  class(lag_both) <- c('lag', class(lag_both))
+  # class(lag_both) <- c('lag', class(lag_both))
   return(lag_both)
 }
 
@@ -70,7 +88,7 @@ calculate_mean_angle <- function(lag) {
   df_angle[c(1,nrow(df_angle)), 'mean_angle'] <-
     df_angle[c(1,nrow(df_angle)), 'mean_angle'] + pi/2
   attr(df_angle, 'epsg') <- attributes(lag)$epsg
-  class(df_angle) <- c('angle', class(df_angle))
+  # class(df_angle) <- c('angle', class(df_angle))
   return(df_angle)
 }
 
@@ -88,7 +106,7 @@ create_point_coordinates <- function(angle, transect_length) {
   })
   point_coordinates <- do.call(rbind, point_coordinates_list)
   attr(point_coordinates, 'epsg') <- attributes(angle)$epsg
-  class(point_coordinates) <- c('point_coordinates', class(angle))
+  # class(point_coordinates) <- c('point_coordinates', class(angle))
   return(point_coordinates)
 }
 
@@ -116,36 +134,43 @@ find_side_of_points <- function(point_coordinates) {
   sides_rbind <- do.call(rbind, sides_list)
   sides <- base::merge(point_coordinates, sides_rbind)
   attr(sides, 'epsg') <- attributes(point_coordinates)$epsg
-  class(sides) <- c('sides', class(point_coordinates))
+  class(sides) <- c('sides_df', class(point_coordinates))
   return(sides)
 }
 
-
-
-
-
-
-
-
-
-create_multilinestring <- function(angle, transect_length) {
-  multilinestring <- lapply(angle$coastr_id, function(z) {
-    x0 <- with(angle, x[coastr_id == z])
-    y0 <- with(angle, y[coastr_id == z])
-    x1 <- with(angle, x[coastr_id == z] + transect_length * cos(mean_angle[coastr_id == z]))
-    y1 <- with(angle, y[coastr_id == z] + transect_length * sin(mean_angle[coastr_id == z]))
-    x2 <- with(angle, x[coastr_id == z] - transect_length * cos(mean_angle[coastr_id == z]))
-    y2 <- with(angle, y[coastr_id == z] - transect_length * sin(mean_angle[coastr_id == z]))
-    multilinestring_sfc <- st_sfc(st_multilinestring(
-      list(
-        rbind(c(x0, y0), c(x1, y1)),
-        rbind(c(x0, y0), c(x2, y2))))
-    )
-    multilinestring_sf <- st_sf(data.frame(coastr_id = z), geometry = multilinestring_sfc)
-    return(multilinestring_sf)
+create_transect_sides <- function(sides_df, sides) {
+  if(is.null(sides))
+    stop('argument sides must be a valid character string')
+  if(!any(sides == 'left', sides == 'right', sides == 'across'))
+    stop('argument sides must be a character string of value
+         "left", "right", or "across"')
+  linestring_list <- lapply(unique(sides_df$coastr_id), function(i) {
+    if(sides == 'across') {
+      j <- 'right'
+      k <- 'left'
+    } else {
+      j <- sides
+      k <- 'on the line'
+    }
+    linestring_side_list <- lapply(j, function(j) {
+      linestring_sfg <- st_linestring(
+        with(
+          sides_df[sides_df$coastr_id==i, ],
+          rbind(c(x[side==j], y[side==j]), c(x[side==k], y[side==k]))
+        )
+      )
+      linestring_sfc <- st_sfc(linestring_sfg)
+      linestring_sf <- st_sf(
+        data.frame(
+          coastr_id = i,
+          side = ifelse(sides=='across', 'across', j)),
+        geometry = linestring_sfc)
+      return(linestring_sf)
+    })
+    linestring_side <- do.call('rbind', linestring_side_list)
+    return(linestring_side)
   })
-  multilinestring <- do.call(rbind, multilinestring)
-  st_crs(multilinestring) <- attributes(angle)$epsg
-  class(multilinestring) <- c('transect', class(multilinestring))
-  return(multilinestring)
+  linestring <- do.call('rbind', linestring_list)
+  st_crs(linestring) <- attributes(sides_df)$epsg
+  return(linestring)
 }

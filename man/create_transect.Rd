@@ -4,19 +4,31 @@
 \alias{create_transect}
 \title{Create transects}
 \usage{
-create_transect(obj, distance = NULL, transect_length = 1, sides)
+create_transect(x, distance = NULL, transect_length = 1, sides = NULL, ...)
 }
 \arguments{
+\item{x}{name of an object of class \code{sf}, or a path to a file
+readable by the \code{sf::st_read} function, which must contain
+geometries of type \code{LINESTRING} or \code{MULTILINESTRING}.}
+
 \item{distance}{numeric; separation distance between transects}
 
 \item{transect_length}{numeric; Euclidean distance of transects}
 
-\item{sides}{character; takes 'left', 'right' and 'both'}
+\item{sides}{character; takes 'left', 'right' and 'across'}
 
-\item{x}{name of an object of class sf which must contain
-geometries of type \code{LINESTRING} or \code{MULTILINESTRING}.}
+\item{...}{other arguments passed to sf::st_read.}
+}
+\value{
+
 }
 \description{
 Create transects of user-defined length and at regular distance
 along an input shoreline
+}
+\details{
+
+}
+\examples{
+
 }

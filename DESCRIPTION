@@ -11,6 +11,7 @@ Authors@R:
 Imports:
     raster,
     dplyr,
+    magrittr,
     assertthat,
     sf,
     ggplot2,
