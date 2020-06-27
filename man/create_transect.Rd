@@ -4,18 +4,30 @@
 \alias{create_transect}
 \title{Create transects}
 \usage{
-create_transect(x, distance = NULL, transect_length = 1, sides = NULL, ...)
+create_transect(
+  x,
+  transect_spacing = NULL,
+  length_left = if (all(!is.null(transect_spacing), is.numeric(transect_spacing)))
+    transect_spacing,
+  length_right = if (all(!is.null(transect_spacing), is.numeric(transect_spacing)))
+    transect_spacing,
+  reverse = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{name of an object of class \code{sf}, or a path to a file
 readable by the \code{sf::st_read} function, which must contain
 geometries of type \code{LINESTRING} or \code{MULTILINESTRING}.}
 
-\item{distance}{numeric; separation distance between transects}
+\item{transect_spacing}{character or numeric. If numeric, represents
+the spacing between transects in \code{x} CRS units. If character,
+accepts only the string 'vertices' as argument (allows partial matching)}
 
-\item{transect_length}{numeric; Euclidean distance of transects}
+\item{length_left}{numeric; length of transects to the right of the input line}
 
-\item{sides}{character; takes 'left', 'right' and 'across'}
+\item{reverse}{logical; reverse orientation of
+transects; default \code{FALSE}}
 
 \item{...}{other arguments passed to sf::st_read.}
 }
@@ -23,8 +35,7 @@ geometries of type \code{LINESTRING} or \code{MULTILINESTRING}.}
 
 }
 \description{
-Create transects of user-defined length and at regular distance
-along an input shoreline
+Create transects of user-defined length along an input line
 }
 \details{
 
