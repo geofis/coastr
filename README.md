@@ -2,6 +2,7 @@
 
 Cite as:
 
+```
 @software{jose_ramon_martinez_batlle_2025_17601559,
   author       = {José Ramón Martínez Batlle},
   title        = {geofis/coastr: First release},
@@ -18,3 +19,4 @@ Cite as:
                    9084efd719f1;path=geofis-coastr-bdf2a49
                   },
 }
+```
